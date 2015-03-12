@@ -1,0 +1,65 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+
+  config.vm.box = "ubuntu/trusty64"
+
+  config.vm.define "master" do |master|
+    master.vm.network "private_network", ip: "192.168.200.10"
+    master.vm.hostname = "master"
+    master.vm.provision "shell", inline: <<-SHELL
+      sudo apt-get install -y salt-master salt-syndic salt-cloud salt-ssh salt-api
+      SHELL
+    master.vm.synced_folder "../../salt/salt", "/srv/salt"
+    master.vm.synced_folder "../../salt/pillar", "/srv/pillar"
+  end
+
+  config.vm.define "loadbalancer" do |loadbalancer|
+    loadbalancer.vm.network "private_network", ip: "192.168.200.101"
+    loadbalancer.vm.hostname = "loadbalancer"
+    loadbalancer.vm.provision "shell", inline: <<-SHELL
+      sudo apt-get install -y salt-minion salt-syndic salt-cloud salt-ssh salt-api
+      SHELL
+  end
+
+  config.vm.define "webserver1" do |webserver1|
+    webserver1.vm.network "private_network", ip: "192.168.200.102"
+    webserver1.vm.hostname = "webserver1"
+    webserver1.vm.provision "shell", inline: <<-SHELL
+      sudo apt-get install -y salt-minion salt-syndic salt-cloud salt-ssh salt-api
+      SHELL
+  end
+
+  config.vm.define "webserver2" do |webserver2|
+    webserver2.vm.network "private_network", ip: "192.168.200.103"
+    webserver2.vm.hostname = "webserver2"
+    webserver2.vm.provision "shell", inline: <<-SHELL
+      sudo apt-get install -y salt-minion salt-syndic salt-cloud salt-ssh salt-api
+      SHELL
+  end
+
+  config.vm.define "database" do |database|
+    database.vm.network "private_network", ip: "192.168.200.104"
+    database.vm.hostname = "database"
+    database.vm.provision "shell", inline: <<-SHELL
+    sudo apt-get install -y salt-minion salt-syndic salt-cloud salt-ssh salt-api
+    SHELL
+  end
+
+  config.vm.provision "shell", inline: <<-SHELL
+    echo "192.168.200.10 master salt" | sudo tee -a /etc/hosts
+    echo "192.168.200.101 loadbalancer" | sudo tee -a /etc/hosts
+    echo "192.168.200.102 webserver1" | sudo tee -a /etc/hosts
+    echo "192.168.200.103 webserver2" | sudo tee -a /etc/hosts
+    echo "192.168.200.104 database" | sudo tee -a /etc/hosts
+    echo deb http://ppa.launchpad.net/saltstack/salt/ubuntu `lsb_release -sc` main | sudo tee /etc/apt/sources.list.d/saltstack.list
+    wget -q -O- "http://keyserver.ubuntu.com:11371/pks/lookup?op=get&search=0x4759FA960E27C0A6" | sudo apt-key add -
+    sudo apt-get update
+    SHELL
+
+   config.vm.provider "virtualbox" do |vb|
+     vb.memory = "768"
+   end
+  
+end

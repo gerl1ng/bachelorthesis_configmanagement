@@ -1,0 +1,22 @@
+## database ist der Datenbankserver
+
+#1. Schritt. Datenbank installieren:
+sudo yum install -y mysql mariadb-server #fedora
+sudo apt-get install -y mysql-server #ubuntu
+
+#2. MariaDB starten, aktivieren (Autostart)
+sudo service mariadb start #fedora
+sudo service mysql start #ubuntu
+
+#4. Datenbank und User für Wordpress anlegen
+mysql --user root -p < dbinit.sql
+mysql --user wordpress -p < wordpress_dbBackup.sql
+
+
+DROP DATABASE IF EXISTS `wordpress_prod`;
+CREATE DATABASE `wordpress_prod`;
+GRANT ALL PRIVILEGES ON wordpress_prod.* TO "wordpress"@"webserver1" IDENTIFIED BY "wordpress";
+GRANT ALL PRIVILEGES ON wordpress_prod.* TO "wordpress"@"webserver2" IDENTIFIED BY "wordpress";
+GRANT ALL PRIVILEGES ON wordpress_prod.* TO "wordpress"@"localhost" IDENTIFIED BY "wordpress";
+FLUSH PRIVILEGES;
+

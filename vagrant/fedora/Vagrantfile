@@ -1,0 +1,82 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+
+Vagrant.configure(2) do |config|
+  
+  config.vm.box = "hansode/fedora-21-server-x86_64"
+
+  config.vm.define "master" do |master|
+    master.vm.network "private_network", ip: "192.168.200.10"
+	  master.vm.hostname = "master"
+    master.vm.provision "shell", inline: <<-SHELL
+	  echo "master" | sudo tee /etc/hostname
+	  sudo yum install -y --enablerepo=updates-testing salt-master
+	  sudo service salt-master start
+	  sudo systemctl enable salt-master
+	  SHELL
+    master.vm.synced_folder "../../salt/salt", "/srv/salt"
+    master.vm.synced_folder "../../salt/pillar", "/srv/pillar"
+  end
+
+  config.vm.define "loadbalancer" do |loadbalancer|
+    loadbalancer.vm.network "private_network", ip: "192.168.200.101"
+    loadbalancer.vm.hostname = "loadbalancer"
+    loadbalancer.vm.provision "shell", inline: <<-SHELL
+      echo "loadbalancer" | sudo tee /etc/hostname
+      sudo yum install -y --enablerepo=updates-testing salt-minion
+	  sudo service salt-minion start
+	  sudo systemctl enable salt-minion
+      SHELL
+  end
+
+  config.vm.define "webserver1" do |webserver1|
+    webserver1.vm.network "private_network", ip: "192.168.200.102"
+    webserver1.vm.hostname = "webserver1"
+    webserver1.vm.provision "shell", inline: <<-SHELL
+      echo "webserver1" | sudo tee /etc/hostname
+      sudo yum install -y --enablerepo=updates-testing salt-minion
+	  sudo service salt-minion start
+	  sudo systemctl enable salt-minion
+      SHELL
+  end
+
+  config.vm.define "webserver2" do |webserver2|
+    webserver2.vm.network "private_network", ip: "192.168.200.103"
+    webserver2.vm.hostname = "webserver2"
+    webserver2.vm.provision "shell", inline: <<-SHELL
+      echo "webserver2" | sudo tee /etc/hostname
+      sudo yum install -y --enablerepo=updates-testing salt-minion
+	  sudo service salt-minion start
+	  sudo systemctl enable salt-minion
+    SHELL
+  end
+
+  config.vm.define "database" do |database|
+    database.vm.network "private_network", ip: "192.168.200.104"
+    database.vm.hostname = "database"
+    database.vm.provision "shell", inline: <<-SHELL
+      echo "database" | sudo tee /etc/hostname
+      sudo yum install -y --enablerepo=updates-testing salt-minion
+      sudo service salt-minion start
+      sudo systemctl enable salt-minion
+    SHELL
+  end
+
+  config.vm.provision "shell", inline: <<-SHELL
+    echo "192.168.200.10 master salt" | sudo tee -a /etc/hosts
+    echo "192.168.200.101 loadbalancer" | sudo tee -a /etc/hosts
+	  echo "192.168.200.102 webserver1" | sudo tee -a /etc/hosts
+	  echo "192.168.200.103 webserver2" | sudo tee -a /etc/hosts
+	  echo "192.168.200.104 database" | sudo tee -a /etc/hosts
+    sudo yum clean
+    sudo yum update
+	  sudo service firewalld stop
+    sudo systemctl disable firewalld
+    SHELL
+
+   config.vm.provider "virtualbox" do |vb|
+     vb.memory = "768"
+   end
+
+end

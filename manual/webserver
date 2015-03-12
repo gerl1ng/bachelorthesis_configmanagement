@@ -1,0 +1,29 @@
+###Webserver
+
+#1. Schritt nginx installieren
+sudo yum -y install nginx #fedora
+sudo apt-get install -y nginx #ubuntu
+
+#2. MySQL Client installieren
+sudo yum -y install mariadb #fedora
+sudo apt-get install -y mysql-client #ubuntu
+
+#3. PHP und php-fpm installieren
+sudo yum -y install php-fpm php-mysql php-cli #fedora
+sudo apt-get install -y php5-fpm php5-mysql php5-cli #ubuntu
+
+#4 php-fpm aktivieren und starten
+sudo service php-fpm start #fedora
+sudo service php5-fpm start #ubuntu
+
+#5. Konfiguration von nginx vornehmen
+sudo cp virtual.conf /etc/nginx/conf.d/virtual.conf #fedora
+sudo cp virtual.conf_socket /etc/nginx/conf.d/virtual.conf #ubuntu
+
+#6 wordpress herunterladen
+sudo mkdir /usr/share/nginx/html/wordpress
+sudo git clone https://github.com/gerl1ng/bachelorthesis_website.git /usr/share/nginx/html/wordpress
+
+#7. Aktivieren und Starten von nginx
+sudo service nginx start #fedora
+sudo service nginx restart #ubuntu
